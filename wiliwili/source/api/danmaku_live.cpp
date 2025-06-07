@@ -19,8 +19,25 @@
 namespace bilibili {
 void BilibiliClient::get_live_danmaku_info(int roomid, const std::function<void(LiveDanmakuinfo)> &callback,
                                            const ErrorCallback &error) {
-    HTTP::getResultAsync<LiveDanmakuinfo>(Api::LiveDanmakuInfo, {{"type", "0"}, {"id", std::to_string(roomid)}},
-                                          callback, error);
+    cpr::Parameters ps;
+    std::vector<cpr::Parameter> vps = {
+        {"id", std::to_string(roomid)},
+        {"type", "0"},
+        {"wts", std::to_string(std::time(nullptr))}
+    };
+
+    std::string base_str;
+    for (const auto& p : vps) {
+        ps.Add(p);
+        if (!base_str.empty()) {
+            base_str += "&";
+        }
+        base_str += p.key + "=" + p.value;
+    }
+    base_str += "ea1db124af3c7062474693fa704f4ff8";
+    ps.Add({"w_rid", websocketpp::md5::md5_hash_hex(base_str)});
+
+    HTTP::getResultAsync<LiveDanmakuinfo>(Api::LiveDanmakuInfo, ps, callback, error);
 }
 }  // namespace bilibili
 
